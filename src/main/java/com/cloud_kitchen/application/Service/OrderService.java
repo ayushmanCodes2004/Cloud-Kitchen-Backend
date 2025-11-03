@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -168,55 +169,114 @@ public class OrderService {
     private final StudentRepository studentRepository;
     private final AuthService authService;
 
-    @Transactional
-    public OrderResponse createOrder(OrderRequest request) {
-        User currentUser = authService.getCurrentUser();
+//    @Transactional
+//    public OrderResponse createOrder(OrderRequest request) {
+//        User currentUser = authService.getCurrentUser();
+//
+//        Student student = studentRepository.findById(currentUser.getId())
+//                .orElseThrow(() -> new RuntimeException("Student not found"));
+//
+//        Order order = new Order();
+//        order.setOrderNumber(generateOrderNumber());
+//        order.setStudent(student);
+//        order.setDeliveryAddress(request.getDeliveryAddress());
+//        order.setSpecialInstructions(request.getSpecialInstructions());
+//        order.setStatus(OrderStatus.PENDING);
+//
+//        List<OrderItem> orderItems = new ArrayList<>();
+//        double totalAmount = 0.0;
+//        int maxPreparationTime = 0;
+//
+//        for (OrderItemRequest itemRequest : request.getItems()) {
+//            MenuItem menuItem = menuItemRepository.findById(itemRequest.getMenuItemId())
+//                    .orElseThrow(() -> new RuntimeException("Menu item not found with id: " + itemRequest.getMenuItemId()));
+//
+//            if (!menuItem.getAvailable()) {
+//                throw new RuntimeException("Menu item " + menuItem.getName() + " is not available");
+//            }
+//
+//            OrderItem orderItem = new OrderItem();
+//            orderItem.setOrder(order);
+//            orderItem.setMenuItem(menuItem);
+//            orderItem.setQuantity(itemRequest.getQuantity());
+//            orderItem.setPrice(menuItem.getPrice());
+//            orderItem.setSubtotal(menuItem.getPrice() * itemRequest.getQuantity());
+//
+//            orderItems.add(orderItem);
+//            totalAmount += orderItem.getSubtotal();
+//
+//            if (menuItem.getPreparationTime() != null && menuItem.getPreparationTime() > maxPreparationTime) {
+//                maxPreparationTime = menuItem.getPreparationTime();
+//            }
+//        }
+//
+//        order.setOrderItems(orderItems);
+//        order.setTotalAmount(totalAmount);
+//        order.setEstimatedDeliveryTime(LocalDateTime.now().plusMinutes(maxPreparationTime + 30));
+//
+//        Order savedOrder = orderRepository.save(order);
+//
+//        // Convert to DTO to avoid lazy loading issues
+//        return convertToOrderResponse(savedOrder);
+//    }
 
+    @Transactional
+    public List<OrderResponse> createOrder(OrderRequest request) {
+        User currentUser = authService.getCurrentUser();
         Student student = studentRepository.findById(currentUser.getId())
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        Order order = new Order();
-        order.setOrderNumber(generateOrderNumber());
-        order.setStudent(student);
-        order.setDeliveryAddress(request.getDeliveryAddress());
-        order.setSpecialInstructions(request.getSpecialInstructions());
-        order.setStatus(OrderStatus.PENDING);
+        // Group items by chef
+        Map<Long, List<OrderItemRequest>> itemsByChef = request.getItems().stream()
+                .collect(Collectors.groupingBy(item -> {
+                    MenuItem menuItem = menuItemRepository.findById(item.getMenuItemId())
+                            .orElseThrow();
+                    return menuItem.getChef().getId();
+                }));
 
-        List<OrderItem> orderItems = new ArrayList<>();
-        double totalAmount = 0.0;
-        int maxPreparationTime = 0;
+        List<OrderResponse> createdOrders = new ArrayList<>();
+        String baseOrderNumber = generateOrderNumber();
+        int subOrderIndex = 0;
 
-        for (OrderItemRequest itemRequest : request.getItems()) {
-            MenuItem menuItem = menuItemRepository.findById(itemRequest.getMenuItemId())
-                    .orElseThrow(() -> new RuntimeException("Menu item not found with id: " + itemRequest.getMenuItemId()));
+        // Create separate order for each chef
+        for (Map.Entry<Long, List<OrderItemRequest>> entry : itemsByChef.entrySet()) {
+            Long chefId = entry.getKey();
+            List<OrderItemRequest> chefItems = entry.getValue();
 
-            if (!menuItem.getAvailable()) {
-                throw new RuntimeException("Menu item " + menuItem.getName() + " is not available");
+            Order order = new Order();
+            order.setOrderNumber(baseOrderNumber + "-" + (char)('A' + subOrderIndex++));
+            order.setStudent(student);
+            order.setDeliveryAddress(request.getDeliveryAddress());
+            order.setSpecialInstructions(request.getSpecialInstructions());
+            order.setStatus(OrderStatus.PENDING);
+
+            List<OrderItem> orderItems = new ArrayList<>();
+            double totalAmount = 0.0;
+
+            for (OrderItemRequest itemRequest : chefItems) {
+                MenuItem menuItem = menuItemRepository.findById(itemRequest.getMenuItemId())
+                        .orElseThrow();
+
+                OrderItem orderItem = new OrderItem();
+                orderItem.setOrder(order);
+                orderItem.setMenuItem(menuItem);
+                orderItem.setQuantity(itemRequest.getQuantity());
+                orderItem.setPrice(menuItem.getPrice());
+                orderItem.setSubtotal(menuItem.getPrice() * itemRequest.getQuantity());
+
+                orderItems.add(orderItem);
+                totalAmount += orderItem.getSubtotal();
             }
 
-            OrderItem orderItem = new OrderItem();
-            orderItem.setOrder(order);
-            orderItem.setMenuItem(menuItem);
-            orderItem.setQuantity(itemRequest.getQuantity());
-            orderItem.setPrice(menuItem.getPrice());
-            orderItem.setSubtotal(menuItem.getPrice() * itemRequest.getQuantity());
+            order.setOrderItems(orderItems);
+            order.setTotalAmount(totalAmount);
+            order.setEstimatedDeliveryTime(LocalDateTime.now().plusMinutes(30));
 
-            orderItems.add(orderItem);
-            totalAmount += orderItem.getSubtotal();
-
-            if (menuItem.getPreparationTime() != null && menuItem.getPreparationTime() > maxPreparationTime) {
-                maxPreparationTime = menuItem.getPreparationTime();
-            }
+            Order savedOrder = orderRepository.save(order);
+            createdOrders.add(convertToOrderResponse(savedOrder));
         }
 
-        order.setOrderItems(orderItems);
-        order.setTotalAmount(totalAmount);
-        order.setEstimatedDeliveryTime(LocalDateTime.now().plusMinutes(maxPreparationTime + 30));
-
-        Order savedOrder = orderRepository.save(order);
-
-        // Convert to DTO to avoid lazy loading issues
-        return convertToOrderResponse(savedOrder);
+        return createdOrders;
     }
 
     @Transactional(readOnly = true)
@@ -317,6 +377,17 @@ public class OrderService {
 
         return response;
     }
+
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getOrdersByChef(Long chefId) {
+        // Get all orders that contain at least one menu item from this chef
+        List<Order> orders = orderRepository.findOrdersByChefId(chefId);
+        return orders.stream()
+                .map(this::convertToOrderResponse)
+                .collect(Collectors.toList());
+    }
+
+
 
     // Convert OrderItem entity to OrderItemResponse DTO
     private OrderItemResponse convertToOrderItemResponse(OrderItem orderItem) {

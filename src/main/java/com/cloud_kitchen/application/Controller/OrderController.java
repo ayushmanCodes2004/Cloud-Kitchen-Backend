@@ -5,12 +5,16 @@ import com.cloud_kitchen.application.DTO.OrderRequest;
 import com.cloud_kitchen.application.DTO.OrderResponse;
 import com.cloud_kitchen.application.Entity.Order;
 import com.cloud_kitchen.application.Entity.OrderStatus;
+import com.cloud_kitchen.application.Entity.User;
+import com.cloud_kitchen.application.Repository.UserRepository;
 import com.cloud_kitchen.application.Service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -115,14 +119,18 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final UserRepository userRepository;
 
     @PostMapping
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<ApiResponse> createOrder(@Valid @RequestBody OrderRequest request) {
         try {
-            OrderResponse order = orderService.createOrder(request);
+            List<OrderResponse> orders = orderService.createOrder(request);
+            String message = orders.size() > 1 
+                ? "Orders created successfully for " + orders.size() + " chefs" 
+                : "Order created successfully";
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new ApiResponse(true, "Order created successfully", order));
+                    .body(new ApiResponse(true, message, orders));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ApiResponse(false, e.getMessage()));
@@ -197,6 +205,48 @@ public class OrderController {
             return ResponseEntity.ok(new ApiResponse(true, "Order cancelled successfully"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse(false, e.getMessage()));
+        }
+    }
+
+//    @GetMapping("/chef/my-orders")
+//    @PreAuthorize("hasRole('CHEF')")
+//    public ResponseEntity<ApiResponse> getChefOrders() {
+//        try {
+//            // Get current authenticated chef's ID
+//            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//            String email = authentication.getName();
+//            User user = userRepository.findByEmail(email)
+//                    .orElseThrow(() -> new RuntimeException("User not found"));
+//
+//            List<OrderResponse> orders = orderService.getOrdersByChef(user.getId());
+//            return ResponseEntity.ok(new ApiResponse(true, "Orders fetched successfully", orders));
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body(new ApiResponse(false, e.getMessage()));
+//        }
+//    }
+
+    @GetMapping("/chef/my-orders")
+    @PreAuthorize("hasRole('CHEF')")
+    public ResponseEntity<ApiResponse> getChefOrders() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            System.out.println("🔍 Chef email: " + email);
+
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            System.out.println("👨‍🍳 Chef ID: " + user.getId());
+
+            List<OrderResponse> orders = orderService.getOrdersByChef(user.getId());
+            System.out.println("📦 Found " + orders.size() + " orders for this chef");
+
+            return ResponseEntity.ok(new ApiResponse(true, "Orders fetched successfully", orders));
+        } catch (Exception e) {
+            System.err.println("❌ Error: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ApiResponse(false, e.getMessage()));
         }
     }

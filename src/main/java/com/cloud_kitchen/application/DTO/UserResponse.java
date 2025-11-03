@@ -17,4 +17,5 @@ public class UserResponse {
     private String role;
     private Boolean active;
     private LocalDateTime createdAt;
+    private Boolean verified;
 }

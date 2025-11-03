@@ -73,6 +73,10 @@ public class UserService {
         response.setRole(user.getRole().name());
         response.setActive(user.getActive());
         response.setCreatedAt(user.getCreatedAt());
+
+        if (user instanceof Chef) {
+            response.setVerified(((Chef) user).getVerified());
+        }
         return response;
     }
 }
