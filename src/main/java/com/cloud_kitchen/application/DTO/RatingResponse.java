@@ -1,6 +1,5 @@
 package com.cloud_kitchen.application.DTO;
 
-import com.cloud_kitchen.application.Entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,14 +9,10 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponse {
+public class RatingResponse {
     private Long id;
-    private String email;
-    private String name;
-    private String phoneNumber;
-    private String role;
-    private Boolean active;
+    private Integer rating;
+    private String comment;
+    private String studentName;
     private LocalDateTime createdAt;
-    private Boolean verified;
-    
 }

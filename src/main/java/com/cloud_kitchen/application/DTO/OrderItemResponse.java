@@ -14,4 +14,7 @@ public class OrderItemResponse {
     private Integer quantity;
     private Double price;
     private Double subtotal;
+    private Boolean vegetarian; // Added for veg/non-veg icon display
+    private Long chefId; // Added to identify the chef for each item
+    private String chefName;
 }

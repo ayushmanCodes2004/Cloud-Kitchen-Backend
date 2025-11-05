@@ -398,6 +398,10 @@ public class OrderService {
         response.setQuantity(orderItem.getQuantity());
         response.setPrice(orderItem.getPrice());
         response.setSubtotal(orderItem.getSubtotal());
+        response.setVegetarian(orderItem.getMenuItem().getVegetarian());// Added for veg/non-veg icon display
+
+        response.setChefId(orderItem.getMenuItem().getChef().getId());
+        response.setChefName(orderItem.getMenuItem().getChef().getName());
         return response;
     }
 }
