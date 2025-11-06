@@ -7,6 +7,7 @@ import com.cloud_kitchen.application.Entity.MenuItem;
 import com.cloud_kitchen.application.Entity.User;
 import com.cloud_kitchen.application.Repository.ChefRepository;
 import com.cloud_kitchen.application.Repository.MenuItemRepository;
+import com.cloud_kitchen.application.Repository.RatingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,7 @@ public class MenuItemService {
     private final MenuItemRepository menuItemRepository;
     private final ChefRepository chefRepository;
     private final AuthService authService;
+    private final RatingRepository ratingRepository;
 
     @Transactional
     public MenuItemResponse createMenuItem(MenuItemRequest request) {
@@ -140,6 +142,20 @@ public class MenuItemService {
         response.setPreparationTime(menuItem.getPreparationTime());
         response.setChefName(menuItem.getChef().getName());
         response.setChefId(menuItem.getChef().getId());
+        response.setChefVerified(menuItem.getChef().getVerified() != null ? menuItem.getChef().getVerified() : false);
+        
+        // Add chef ratings
+        Double chefAvgRating = ratingRepository.findAverageRatingByChefId(menuItem.getChef().getId());
+        Long chefTotalRatings = ratingRepository.countRatingsByChefId(menuItem.getChef().getId());
+        response.setChefAverageRating(chefAvgRating != null ? chefAvgRating : 0.0);
+        response.setChefTotalRatings(chefTotalRatings != null ? chefTotalRatings : 0L);
+        
+        // Add menu item ratings
+        Double menuItemAvgRating = ratingRepository.findAverageRatingByMenuItemId(menuItem.getId());
+        Long menuItemTotalRatings = ratingRepository.countRatingsByMenuItemId(menuItem.getId());
+        response.setMenuItemAverageRating(menuItemAvgRating != null ? menuItemAvgRating : 0.0);
+        response.setMenuItemTotalRatings(menuItemTotalRatings != null ? menuItemTotalRatings : 0L);
+        
         return response;
     }
 }

@@ -159,4 +159,26 @@ public class AdminController {
                     .body(new ApiResponse<>(false, e.getMessage(), null));
         }
     }
+
+    @PatchMapping("/chefs/{id}/unverify")
+    public ResponseEntity<ApiResponse<UserResponse>> unverifyChef(@PathVariable Long id) {
+        try {
+            UserResponse chef = userService.unverifyChef(id);
+            return ResponseEntity.ok(new ApiResponse<>(true, "Chef unverified successfully", chef));
+        } catch (Exception e) {
+            return ResponseEntity.status(400)
+                    .body(new ApiResponse<>(false, e.getMessage(), null));
+        }
+    }
+
+    @PatchMapping("/chefs/{id}/toggle-verify")
+    public ResponseEntity<ApiResponse<UserResponse>> toggleChefVerification(@PathVariable Long id) {
+        try {
+            UserResponse chef = userService.toggleChefVerification(id);
+            return ResponseEntity.ok(new ApiResponse<>(true, "Chef verification toggled successfully", chef));
+        } catch (Exception e) {
+            return ResponseEntity.status(400)
+                    .body(new ApiResponse<>(false, e.getMessage(), null));
+        }
+    }
 }

@@ -14,6 +14,7 @@ public class AuthResponse {
     private String email;
     private String name;
     private String role;
+    private Boolean verified;
 
     public AuthResponse(String token, Long id, String email, String name, String role) {
         this.token = token;
@@ -21,5 +22,14 @@ public class AuthResponse {
         this.email = email;
         this.name = name;
         this.role = role;
+    }
+
+    public AuthResponse(String token, Long id, String email, String name, String role, Boolean verified) {
+        this.token = token;
+        this.id = id;
+        this.email = email;
+        this.name = name;
+        this.role = role;
+        this.verified = verified;
     }
 }

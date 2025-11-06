@@ -199,9 +199,17 @@ Cloud Kitchen Team
         String jwt = jwtTokenProvider.generateToken(authentication);
 
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        
+        // Get verified status for chefs
+        User user = userRepository.findById(userPrincipal.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Boolean verified = null;
+        if (user instanceof Chef) {
+            verified = ((Chef) user).getVerified();
+        }
 
         return new AuthResponse(jwt, userPrincipal.getId(), userPrincipal.getEmail(),
-                userPrincipal.getName(), userPrincipal.getRole());
+                userPrincipal.getName(), userPrincipal.getRole(), verified);
     }
 
     public User getCurrentUser() {

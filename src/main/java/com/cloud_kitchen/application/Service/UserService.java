@@ -64,6 +64,24 @@ public class UserService {
         return convertToResponse(updatedChef);
     }
 
+    @Transactional
+    public UserResponse unverifyChef(Long chefId) {
+        Chef chef = chefRepository.findById(chefId)
+                .orElseThrow(() -> new RuntimeException("Chef not found"));
+        chef.setVerified(false);
+        Chef updatedChef = chefRepository.save(chef);
+        return convertToResponse(updatedChef);
+    }
+
+    @Transactional
+    public UserResponse toggleChefVerification(Long chefId) {
+        Chef chef = chefRepository.findById(chefId)
+                .orElseThrow(() -> new RuntimeException("Chef not found"));
+        chef.setVerified(!chef.getVerified());
+        Chef updatedChef = chefRepository.save(chef);
+        return convertToResponse(updatedChef);
+    }
+
     private UserResponse convertToResponse(User user) {
         UserResponse response = new UserResponse();
         response.setId(user.getId());

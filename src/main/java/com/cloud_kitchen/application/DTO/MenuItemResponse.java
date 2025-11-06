@@ -19,4 +19,9 @@ public class MenuItemResponse {
     private Integer preparationTime;
     private String chefName;
     private Long chefId;
+    private Boolean chefVerified;
+    private Double chefAverageRating;
+    private Long chefTotalRatings;
+    private Double menuItemAverageRating;
+    private Long menuItemTotalRatings;
 }

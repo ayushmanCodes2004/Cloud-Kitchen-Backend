@@ -209,6 +209,18 @@ public class OrderController {
         }
     }
 
+    @DeleteMapping("/chef/{id}")
+    @PreAuthorize("hasRole('CHEF')")
+    public ResponseEntity<ApiResponse<String>> cancelOrderByChef(@PathVariable Long id) {
+        try {
+            orderService.cancelOrderByChef(id);
+            return ResponseEntity.ok(new ApiResponse<>(true, "Order cancelled successfully by chef", null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse<>(false, e.getMessage(), null));
+        }
+    }
+
 //    @GetMapping("/chef/my-orders")
 //    @PreAuthorize("hasRole('CHEF')")
 //    public ResponseEntity<ApiResponse> getChefOrders() {

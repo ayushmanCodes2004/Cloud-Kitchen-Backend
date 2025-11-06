@@ -347,6 +347,38 @@ public class OrderService {
             throw new RuntimeException("Cannot cancel order in " + order.getStatus() + " status");
         }
 
+        // Check if order was placed within last 2 minutes
+        LocalDateTime orderCreatedAt = order.getCreatedAt();
+        LocalDateTime twoMinutesAgo = LocalDateTime.now().minusMinutes(2);
+        
+        if (orderCreatedAt.isBefore(twoMinutesAgo)) {
+            throw new RuntimeException("Order can only be cancelled within 2 minutes of placing it");
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
+    }
+
+    @Transactional
+    public void cancelOrderByChef(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        User currentUser = authService.getCurrentUser();
+
+        // Verify the chef owns at least one item in this order
+        boolean hasChefItems = order.getOrderItems().stream()
+                .anyMatch(item -> item.getMenuItem().getChef().getId().equals(currentUser.getId()));
+
+        if (!hasChefItems) {
+            throw new RuntimeException("You can only cancel orders containing your menu items");
+        }
+
+        // Chefs can only cancel PENDING or CONFIRMED orders (before preparation starts)
+        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.CONFIRMED) {
+            throw new RuntimeException("Cannot cancel order in " + order.getStatus() + " status. Orders can only be cancelled before preparation starts.");
+        }
+
         order.setStatus(OrderStatus.CANCELLED);
         orderRepository.save(order);
     }
