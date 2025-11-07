@@ -35,6 +35,12 @@ public class UserService {
     public UserResponse deactivateUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        // Prevent deactivation of admin users
+        if (user.getRole().name().equals("ADMIN")) {
+            throw new RuntimeException("Cannot deactivate admin users");
+        }
+        
         user.setActive(false);
         User updatedUser = userRepository.save(user);
         return convertToResponse(updatedUser);

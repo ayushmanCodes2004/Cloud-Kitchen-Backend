@@ -40,9 +40,8 @@ public class AuthService {
             throw new RuntimeException("Phone number already exists");
         }
 
-        if (studentRepository.existsByStudentId(request.getStudentId())) {
-            throw new RuntimeException("Student ID already exists");
-        }
+        // Auto-generate unique student ID
+        String studentId = generateUniqueStudentId();
 
         Student student = new Student();
         student.setEmail(request.getEmail());
@@ -50,7 +49,7 @@ public class AuthService {
         student.setName(request.getName());
         student.setPhoneNumber(request.getPhoneNumber());
         student.setRole(Role.STUDENT);
-        student.setStudentId(request.getStudentId());
+        student.setStudentId(studentId);
         student.setCollege(request.getCollege());
         student.setHostelName(request.getHostelName());
         student.setRoomNumber(request.getRoomNumber());
@@ -217,5 +216,22 @@ Cloud Kitchen Team
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         return userRepository.findById(userPrincipal.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    /**
+     * Generates a unique student ID in the format: STU-YYYYMMDD-XXXX
+     * where XXXX is a sequential number
+     */
+    private String generateUniqueStudentId() {
+        String prefix = "STU-" + java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")) + "-";
+        String studentId;
+        int counter = 1;
+        
+        do {
+            studentId = prefix + String.format("%04d", counter);
+            counter++;
+        } while (studentRepository.existsByStudentId(studentId));
+        
+        return studentId;
     }
 }

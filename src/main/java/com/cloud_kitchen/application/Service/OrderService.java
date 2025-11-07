@@ -246,7 +246,32 @@ public class OrderService {
             Order order = new Order();
             order.setOrderNumber(baseOrderNumber + "-" + (char)('A' + subOrderIndex++));
             order.setStudent(student);
-            order.setDeliveryAddress(request.getDeliveryAddress());
+            
+            // Use student's registered address if no delivery address provided or if it's the default value
+            String deliveryAddress = request.getDeliveryAddress();
+            if (deliveryAddress == null || deliveryAddress.trim().isEmpty() || deliveryAddress.equals("Student Hostel")) {
+                // Build address from student's profile
+                StringBuilder addressBuilder = new StringBuilder();
+                if (student.getHostelName() != null && !student.getHostelName().trim().isEmpty()) {
+                    addressBuilder.append(student.getHostelName());
+                    if (student.getRoomNumber() != null && !student.getRoomNumber().trim().isEmpty()) {
+                        addressBuilder.append(", Room ").append(student.getRoomNumber());
+                    }
+                }
+                if (student.getAddress() != null && !student.getAddress().trim().isEmpty()) {
+                    if (addressBuilder.length() > 0) {
+                        addressBuilder.append(", ");
+                    }
+                    addressBuilder.append(student.getAddress());
+                }
+                if (addressBuilder.length() > 0) {
+                    deliveryAddress = addressBuilder.toString();
+                } else {
+                    deliveryAddress = student.getCollege(); // Fallback to college name
+                }
+            }
+            
+            order.setDeliveryAddress(deliveryAddress);
             order.setSpecialInstructions(request.getSpecialInstructions());
             order.setStatus(OrderStatus.PENDING);
 

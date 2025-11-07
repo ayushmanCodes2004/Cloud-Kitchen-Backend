@@ -26,9 +26,6 @@ public class StudentRegistrationRequest {
     @NotBlank(message = "Phone number is required")
     private String phoneNumber;
 
-    @NotBlank(message = "Student ID is required")
-    private String studentId;
-
     @NotBlank(message = "College is required")
     private String college;
 
