@@ -49,13 +49,13 @@ public class MenuItemController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('CHEF')")
-    public ResponseEntity<ApiResponse<RatingResponse>> deleteMenuItem(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<String>> deleteMenuItem(@PathVariable Long id) {
         try {
             menuItemService.deleteMenuItem(id);
-            return ResponseEntity.ok(new ApiResponse<RatingResponse>(true, "Menu item deleted successfully"));
+            return ResponseEntity.ok(new ApiResponse<String>(true, "Menu item deleted successfully"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<RatingResponse>(false, e.getMessage()));
+                    .body(new ApiResponse<String>(false, e.getMessage()));
         }
     }
 
