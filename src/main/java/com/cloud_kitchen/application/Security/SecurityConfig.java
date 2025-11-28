@@ -133,7 +133,8 @@ public class SecurityConfig {
                                 "/h2-console/**",
                                 "/error",
                                 "/api/public/**",
-                                "/api/testimonials/approved"
+                                "/api/testimonials/approved",
+                                "/api/ai/**"
                         ).permitAll()
 
                         // Admin endpoints

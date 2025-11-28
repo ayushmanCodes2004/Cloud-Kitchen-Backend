@@ -129,7 +129,7 @@ public class MenuItemService {
         return convertToResponse(updatedMenuItem);
     }
 
-    private MenuItemResponse convertToResponse(MenuItem menuItem) {
+    public MenuItemResponse convertToResponse(MenuItem menuItem) {
         MenuItemResponse response = new MenuItemResponse();
         response.setId(menuItem.getId());
         response.setName(menuItem.getName());
