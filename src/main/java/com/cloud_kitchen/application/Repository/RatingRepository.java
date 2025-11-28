@@ -1,5 +1,6 @@
 package com.cloud_kitchen.application.Repository;
 
+import com.cloud_kitchen.application.Entity.MenuItem;
 import com.cloud_kitchen.application.Entity.Rating;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -41,4 +42,7 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
 
     @Query("SELECT CONCAT(r.order.id, '-', r.menuItem.id) FROM Rating r WHERE r.student.id = :studentId AND r.menuItem IS NOT NULL")
     List<String> findRatedMenuItemsByStudentId(@Param("studentId") Long studentId);
+
+    // Delete by MenuItem
+    void deleteByMenuItem(MenuItem menuItem);
 }

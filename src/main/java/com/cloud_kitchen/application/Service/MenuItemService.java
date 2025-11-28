@@ -7,6 +7,7 @@ import com.cloud_kitchen.application.Entity.MenuItem;
 import com.cloud_kitchen.application.Entity.User;
 import com.cloud_kitchen.application.Repository.ChefRepository;
 import com.cloud_kitchen.application.Repository.MenuItemRepository;
+import com.cloud_kitchen.application.Repository.OrderItemRepository;
 import com.cloud_kitchen.application.Repository.RatingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ public class MenuItemService {
     private final ChefRepository chefRepository;
     private final AuthService authService;
     private final RatingRepository ratingRepository;
+    private final OrderItemRepository orderItemRepository;
 
     @Transactional
     public MenuItemResponse createMenuItem(MenuItemRequest request) {
@@ -78,7 +80,20 @@ public class MenuItemService {
             throw new RuntimeException("You can only delete your own menu items");
         }
 
-        menuItemRepository.delete(menuItem);
+        try {
+            // Delete all ratings that reference this menu item
+            ratingRepository.deleteByMenuItem(menuItem);
+
+            // Delete all order items that reference this menu item
+            List<com.cloud_kitchen.application.Entity.OrderItem> orderItems = orderItemRepository.findByMenuItem(menuItem);
+            if (!orderItems.isEmpty()) {
+                orderItemRepository.deleteAll(orderItems);
+            }
+
+            menuItemRepository.delete(menuItem);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete menu item: " + e.getMessage(), e);
+        }
     }
 
     public List<MenuItemResponse> getAllMenuItems() {
