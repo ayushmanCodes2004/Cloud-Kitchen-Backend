@@ -90,7 +90,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of(
                 "http://localhost:5173",   // Vite dev server
-                "http://127.0.0.1:5173"
+                "http://127.0.0.1:5173",
+                "https://cloud-kitchen-frontend-versel.vercel.app" // Deployed frontend
         ));
         configuration.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization","Content-Type","Accept"));
