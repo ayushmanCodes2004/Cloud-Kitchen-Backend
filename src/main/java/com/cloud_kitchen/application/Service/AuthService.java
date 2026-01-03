@@ -28,7 +28,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
-    private final EmailService emailService;
+//    private final EmailService emailService;
 
     @Transactional
     public AuthResponse registerStudent(StudentRegistrationRequest request) {
@@ -58,25 +58,25 @@ public class AuthService {
 
         Student savedStudent = studentRepository.save(student);
 
-        String subject = "Welcome to Cloud Kitchen!";
-
-        String body = """
-Hi %s,
-
-Welcome to Cloud Kitchen!
-
-Your student account has been successfully created. You can now log in using your registered email and start exploring our services.
-
-If you have any questions or need assistance, feel free to contact our support team.
-
-Best regards,  
-Cloud Kitchen Team
-""".formatted(savedStudent.getName());
-
-
-
-
-        emailService.sendEmail(request.getEmail(), subject, body);
+//        String subject = "Welcome to Cloud Kitchen!";
+//
+//        String body = """
+//Hi %s,
+//
+//Welcome to Cloud Kitchen!
+//
+//Your student account has been successfully created. You can now log in using your registered email and start exploring our services.
+//
+//If you have any questions or need assistance, feel free to contact our support team.
+//
+//Best regards,
+//Cloud Kitchen Team
+//""".formatted(savedStudent.getName());
+//
+//
+//
+//
+//        emailService.sendEmail(request.getEmail(), subject, body);
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -117,22 +117,22 @@ Cloud Kitchen Team
 
         Chef savedChef = chefRepository.save(chef);
 
-        String subject = "Welcome to Cloud Kitchen!";
-
-        String body = """
-Hi %s,
-
-Welcome to Cloud Kitchen!
-
-Your chef account has been successfully created. You can now log in using your registered email and start managing your dishes and orders.
-
-If you have any questions or need assistance, feel free to contact our support team.
-
-Best regards,  
-Cloud Kitchen Team
-""".formatted(savedChef.getName());
-
-        emailService.sendEmail(request.getEmail(), subject, body);
+//        String subject = "Welcome to Cloud Kitchen!";
+//
+//        String body = """
+//Hi %s,
+//
+//Welcome to Cloud Kitchen!
+//
+//Your chef account has been successfully created. You can now log in using your registered email and start managing your dishes and orders.
+//
+//If you have any questions or need assistance, feel free to contact our support team.
+//
+//Best regards,
+//Cloud Kitchen Team
+//""".formatted(savedChef.getName());
+//
+//        emailService.sendEmail(request.getEmail(), subject, body);
 
 
         Authentication authentication = authenticationManager.authenticate(

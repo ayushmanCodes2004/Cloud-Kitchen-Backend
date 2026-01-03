@@ -134,13 +134,16 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Public endpoints
                         .requestMatchers(
-                                "/api/auth/**",
+                                "/api/auth/register/**",
+                                "/api/auth/login",
                                 "/h2-console/**",
                                 "/error",
                                 "/api/public/**",
                                 "/api/testimonials/approved",
                                 "/api/ai/**"
                         ).permitAll()
+                        // Other auth endpoints (e.g., /auth/me) require authentication
+                        .requestMatchers("/api/auth/**").authenticated()
 
                         // Admin endpoints
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
