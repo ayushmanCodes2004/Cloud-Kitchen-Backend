@@ -18,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -95,7 +96,7 @@ public class SecurityConfig {
                 "https://*.vercel.app"
         ));
         configuration.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization","Content-Type","Accept"));
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true); // keep true only if you use cookies; for pure JWT it's OK either way
         configuration.setMaxAge(3600L);
@@ -129,6 +130,8 @@ public class SecurityConfig {
 
                 // Configure authorization rules
                 .authorizeHttpRequests(auth -> auth
+                        // Always allow CORS preflight requests
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Public endpoints
                         .requestMatchers(
                                 "/api/auth/**",
