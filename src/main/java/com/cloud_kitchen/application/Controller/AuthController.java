@@ -5,84 +5,20 @@ import com.cloud_kitchen.application.Entity.Chef;
 import com.cloud_kitchen.application.Entity.User;
 import com.cloud_kitchen.application.Service.AuthService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-//@RestController
-//@RequestMapping("/api/auth")
-//@RequiredArgsConstructor
-//public class AuthController {
-//
-//    private final AuthService authService;
-//
-//    @PostMapping("/register/student")
-//    public ResponseEntity<ApiResponse<R>> registerStudent(@Valid @RequestBody StudentRegistrationRequest request) {
-//        try {
-//            AuthResponse authResponse = authService.registerStudent(request);
-//            return ResponseEntity.status(HttpStatus.CREATED)
-//                    .body(new ApiResponse<R>(true, "Student registered successfully", authResponse));
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//                    .body(new ApiResponse<R>(false, e.getMessage()));
-//        }
-//    }
-//
-//    @PostMapping("/register/chef")
-//    public ResponseEntity<ApiResponse<R>> registerChef(@Valid @RequestBody ChefRegistrationRequest request) {
-//        try {
-//            AuthResponse authResponse = authService.registerChef(request);
-//            return ResponseEntity.status(HttpStatus.CREATED)
-//                    .body(new ApiResponse<R>(true, "Chef registered successfully", authResponse));
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//                    .body(new ApiResponse<R>(false, e.getMessage()));
-//        }
-//    }
-//
-//    @PostMapping("/register/admin")
-//    public ResponseEntity<ApiResponse<R>> registerAdmin(@Valid @RequestBody AdminRegistrationRequest request) {
-//        try {
-//            AuthResponse authResponse = authService.registerAdmin(request);
-//            return ResponseEntity.status(HttpStatus.CREATED)
-//                    .body(new ApiResponse<R>(true, "Admin registered successfully", authResponse));
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//                    .body(new ApiResponse<R>(false, e.getMessage()));
-//        }
-//    }
-//
-//    @PostMapping("/login")
-//    public ResponseEntity<ApiResponse<R>> login(@Valid @RequestBody LoginRequest request) {
-//        try {
-//            AuthResponse authResponse = authService.login(request);
-//            return ResponseEntity.ok(new ApiResponse<R>(true, "Login successful", authResponse));
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-//                    .body(new ApiResponse<R>(false, "Invalid email or password"));
-//        }
-//    }
-//
-//    @GetMapping("/me")
-//    public ResponseEntity<ApiResponse<R>> getCurrentUser() {
-//        try {
-//            return ResponseEntity.ok(new ApiResponse<R>(true, "User fetched successfully",
-//                    authService.getCurrentUser()));
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-//                    .body(new ApiResponse<R>(false, e.getMessage()));
-//        }
-//    }
-//}
-
 @RestController
-@RequestMapping("/api/auth")
-@RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
+//@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 public class AuthController {
 
     private final AuthService authService;
+
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @PostMapping("/register/student")
     public ResponseEntity<ApiResponse<AuthResponse>> registerStudent(@Valid @RequestBody StudentRegistrationRequest request) {

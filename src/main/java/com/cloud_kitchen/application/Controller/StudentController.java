@@ -10,9 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/student")
+@RequestMapping("/student")
 @PreAuthorize("hasRole('STUDENT')")
-@CrossOrigin(origins = "http://localhost:5173")
 public class StudentController {
 
     @GetMapping("/dashboard")

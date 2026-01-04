@@ -86,10 +86,9 @@ import java.util.List;
 //}
 
 @RestController
-@RequestMapping("/api/admin")
+@RequestMapping("/admin")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
-@CrossOrigin(origins = "http://localhost:5173")
 public class AdminController {
 
     private final UserService userService;

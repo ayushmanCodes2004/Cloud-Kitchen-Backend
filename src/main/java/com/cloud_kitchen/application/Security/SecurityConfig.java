@@ -1,10 +1,10 @@
 package com.cloud_kitchen.application.Security;
 
-
 import com.cloud_kitchen.application.Service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -18,21 +18,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.http.HttpMethod;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(
-        securedEnabled = true,
-        jsr250Enabled = true,
-        prePostEnabled = true
-)
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -40,138 +34,86 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    /**
-     * Password encoder bean
-     */
+    // ================= PASSWORD =================
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * Authentication provider configuration
-     */
+    // ================= AUTH PROVIDER =================
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(customUserDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(customUserDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
     }
 
-    /**
-     * Authentication manager bean
-     */
+    // ================= AUTH MANAGER =================
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig)
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
             throws Exception {
-        return authConfig.getAuthenticationManager();
+        return config.getAuthenticationManager();
     }
 
-    /**
-     * CORS configuration
-     */
-//    @Bean
-//    public CorsConfigurationSource corsConfigurationSource() {
-//        CorsConfiguration configuration = new CorsConfiguration();
-//        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:4200"));
-//        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-//        configuration.setAllowedHeaders(Arrays.asList("*"));
-//        configuration.setExposedHeaders(Arrays.asList("Authorization"));
-//        configuration.setAllowCredentials(true);
-//        configuration.setMaxAge(3600L);
-//
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        source.registerCorsConfiguration("/**", configuration);
-//        return source;
-//    }
-
+    // ================= CORS =================
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of(
-                "http://localhost:5173",   // Vite dev server
-                "http://127.0.0.1:5173",
-                "https://cloud-kitchen-frontend-versel.vercel.app", // Deployed frontend
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(List.of(
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "http://localhost:4200",
                 "https://*.vercel.app"
         ));
-        configuration.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setExposedHeaders(List.of("Authorization"));
-        configuration.setAllowCredentials(true); // keep true only if you use cookies; for pure JWT it's OK either way
-        configuration.setMaxAge(3600L);
+        config.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("Authorization"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**", config);
         return source;
     }
 
-    /**
-     * Main security filter chain configuration
-     */
+    // ================= SECURITY FILTER =================
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
-                // Disable CSRF (not needed for stateless JWT authentication)
                 .csrf(AbstractHttpConfigurer::disable)
-
-                // Enable CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-                // Set session management to stateless
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-
-                // Set unauthorized requests exception handler
-                .exceptionHandling(exception ->
-                        exception.authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                .exceptionHandling(ex ->
+                        ex.authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 )
-
-                // Configure authorization rules
                 .authorizeHttpRequests(auth -> auth
-                        // Always allow CORS preflight requests
+
+                        // Preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // Public endpoints
+
+                        // ===== PUBLIC (NO TOKEN) =====
                         .requestMatchers(
-                                "/api/auth/register/**",
-                                "/api/auth/login",
-                                "/h2-console/**",
-                                "/error",
-                                "/api/public/**",
+                                "/api/auth/**",
+                                "/auth/**",
                                 "/api/testimonials/approved",
-                                "/api/ai/**"
+                                "/api/ai/**",
+                                "/error"
                         ).permitAll()
-                        // Other auth endpoints (e.g., /auth/me) require authentication
-                        .requestMatchers("/api/auth/**").authenticated()
 
-                        // Admin endpoints
+                        // ===== ROLE BASED =====
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-
-                        // Chef endpoints
                         .requestMatchers("/api/chef/**").hasRole("CHEF")
-
-                        // Student endpoints
                         .requestMatchers("/api/student/**").hasRole("STUDENT")
 
-                        // Menu endpoints - mixed access
-                        .requestMatchers("/api/menu/**").authenticated()
-
-                        // Order endpoints
-                        .requestMatchers("/api/orders/**").authenticated()
-
-                        // All other requests must be authenticated
+                        // ===== AUTH REQUIRED =====
                         .anyRequest().authenticated()
                 )
-
-                // Add JWT filter
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-        // For H2 Console (disable frame options)
-        http.headers(headers -> headers
-                .frameOptions(frame -> frame.disable())
-        );
 
         return http.build();
     }

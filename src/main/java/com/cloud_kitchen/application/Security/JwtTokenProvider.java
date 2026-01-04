@@ -36,7 +36,7 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
-        return Jwts.builder()
+        String token = Jwts.builder()
                 .subject(Long.toString(userPrincipal.getId()))
                 .claim("email", userPrincipal.getEmail())
                 .claim("name", userPrincipal.getName())
@@ -45,6 +45,9 @@ public class JwtTokenProvider {
                 .expiration(expiryDate)
                 .signWith(getSigningKey(), Jwts.SIG.HS512)
                 .compact();
+
+        logger.info("Generated JWT token for user: {}", userPrincipal.getEmail());
+        return token;
     }
 
 
@@ -112,15 +115,18 @@ public class JwtTokenProvider {
                     .verifyWith(getSigningKey())
                     .build()
                     .parseSignedClaims(token);
+            logger.debug("JWT token is valid");
             return true;
         } catch (MalformedJwtException ex) {
-            logger.error("Invalid JWT token");
+            logger.error("Invalid JWT token: {}", ex.getMessage());
         } catch (ExpiredJwtException ex) {
-            logger.error("Expired JWT token");
+            logger.error("Expired JWT token: {}", ex.getMessage());
         } catch (UnsupportedJwtException ex) {
-            logger.error("Unsupported JWT token");
+            logger.error("Unsupported JWT token: {}", ex.getMessage());
         } catch (IllegalArgumentException ex) {
-            logger.error("JWT claims string is empty");
+            logger.error("JWT claims string is empty: {}", ex.getMessage());
+        } catch (Exception ex) {
+            logger.error("JWT validation error: {}", ex.getMessage(), ex);
         }
         return false;
     }

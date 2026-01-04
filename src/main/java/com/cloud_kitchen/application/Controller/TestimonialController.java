@@ -17,9 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/testimonials")
+@RequestMapping("/testimonials")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
 public class TestimonialController {
 
     private final TestimonialService testimonialService;

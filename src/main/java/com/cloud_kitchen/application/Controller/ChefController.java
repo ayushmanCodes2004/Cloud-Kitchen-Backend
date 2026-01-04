@@ -18,10 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/chef")
+@RequestMapping("/chef")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('CHEF')")
-@CrossOrigin(origins = "http://localhost:5173")
 public class ChefController {
 
     private final MenuItemService menuItemService;

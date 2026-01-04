@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/ai")
+@RequestMapping("/ai")
 @RequiredArgsConstructor
 @Slf4j
 public class AiController {
