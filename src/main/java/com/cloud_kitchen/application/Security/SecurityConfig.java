@@ -97,8 +97,10 @@ public class SecurityConfig {
 
                         // ===== PUBLIC (NO TOKEN) =====
                         .requestMatchers(
-                                "/api/auth/**",
-                                "/auth/**",
+                                "/auth/login",
+                                "/auth/register/**",
+                                "/api/auth/login",
+                                "/api/auth/register/**",
                                 "/api/testimonials/approved",
                                 "/api/ai/**",
                                 "/error"
