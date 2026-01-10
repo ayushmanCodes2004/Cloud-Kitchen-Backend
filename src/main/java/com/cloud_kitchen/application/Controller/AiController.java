@@ -2,7 +2,8 @@ package com.cloud_kitchen.application.Controller;
 
 import com.cloud_kitchen.application.Service.AiService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,10 +11,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/ai")
+@RequestMapping({"/ai", "/api/ai"})
 @RequiredArgsConstructor
-@Slf4j
 public class AiController {
+
+    private static final Logger log = LoggerFactory.getLogger(AiController.class);
 
     private final AiService aiService;
 

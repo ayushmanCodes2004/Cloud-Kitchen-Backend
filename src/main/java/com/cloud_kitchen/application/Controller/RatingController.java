@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/ratings")
+@RequestMapping({"api/ratings", "/ratings"})
 @RequiredArgsConstructor
 public class RatingController {
 

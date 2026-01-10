@@ -6,7 +6,8 @@ import com.cloud_kitchen.application.Repository.MenuItemRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -22,8 +23,9 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AiService {
+
+    private static final Logger log = LoggerFactory.getLogger(AiService.class);
 
     @Value("${gemini.api.key}")
     private String geminiApiKey;
@@ -361,10 +363,11 @@ public class AiService {
         if (candidates.isArray() && candidates.size() > 0) {
             JsonNode content = candidates.get(0).path("content").path("parts").get(0).path("text");
             String responseText = content.asText();
+            String jsonText = extractJsonFromText(responseText);
 
             try {
                 // Try to parse the response as JSON
-                JsonNode jsonResponse = objectMapper.readTree(responseText);
+                JsonNode jsonResponse = objectMapper.readTree(jsonText);
                 
                 Map<String, Object> result = new HashMap<>();
                 result.put("success", true);
@@ -472,6 +475,32 @@ public class AiService {
     }
     
     /**
+     * Extract JSON from text (remove markdown code blocks)
+     */
+    private String extractJsonFromText(String text) {
+        if (text == null || text.isEmpty()) {
+            return "{}";
+        }
+        
+        // Remove markdown code blocks if present
+        if (text.contains("```json")) {
+            text = text.replaceAll("```json", "").replaceAll("```", "");
+        } else if (text.contains("```")) {
+            text = text.replaceAll("```", "");
+        }
+        
+        // Find the first '{' and last '}' to extract the JSON object
+        int firstBrace = text.indexOf("{");
+        int lastBrace = text.lastIndexOf("}");
+        
+        if (firstBrace != -1 && lastBrace != -1 && lastBrace > firstBrace) {
+            return text.substring(firstBrace, lastBrace + 1);
+        }
+        
+        return text.trim();
+    }
+
+    /**
      * Clean JSON syntax from text
      */
     private String cleanJsonFromText(String text) {
@@ -503,10 +532,11 @@ public class AiService {
         if (candidates.isArray() && candidates.size() > 0) {
             JsonNode content = candidates.get(0).path("content").path("parts").get(0).path("text");
             String responseText = content.asText();
+            String jsonText = extractJsonFromText(responseText);
 
             try {
                 // Try to parse the response as JSON
-                JsonNode jsonResponse = objectMapper.readTree(responseText);
+                JsonNode jsonResponse = objectMapper.readTree(jsonText);
                 
                 Map<String, Object> result = new HashMap<>();
                 result.put("success", true);
@@ -573,12 +603,13 @@ public class AiService {
         if (candidates.isArray() && candidates.size() > 0) {
             JsonNode content = candidates.get(0).path("content").path("parts").get(0).path("text");
             String responseText = content.asText();
+            String jsonText = extractJsonFromText(responseText);
 
             try {
                 // Try to parse the response as JSON first
                 JsonNode jsonResponse = null;
                 try {
-                    jsonResponse = objectMapper.readTree(responseText);
+                    jsonResponse = objectMapper.readTree(jsonText);
                 } catch (Exception e) {
                     // If it's not JSON, treat it as plain text
                     log.debug("Response is not JSON, treating as plain text");
@@ -761,8 +792,26 @@ public class AiService {
                     if (combinations != null) {
                         for (Map<String, Object> combo : combinations) {
                             String itemName = (String) combo.get("itemName");
+                            // Remove any markdown bolding if present
+                            if (itemName != null) {
+                                itemName = itemName.replace("**", "").trim();
+                            }
+
                             // Try to find matching menu item in database
+                            // First try exact match
                             List<MenuItem> items = menuItemRepository.findByNameContainingIgnoreCase(itemName);
+                            
+                            // If no match found, try fuzzy matching or splitting
+                            if (items.isEmpty() && itemName.contains(" ")) {
+                                String[] parts = itemName.split(" ");
+                                for (String part : parts) {
+                                    if (part.length() > 3) {
+                                        items = menuItemRepository.findByNameContainingIgnoreCase(part);
+                                        if (!items.isEmpty()) break;
+                                    }
+                                }
+                            }
+
                             if (!items.isEmpty()) {
                                 fullItems.add(menuItemService.convertToResponse(items.get(0)));
                             }
@@ -854,8 +903,26 @@ public class AiService {
                     if (recommendedMeal != null) {
                         for (Map<String, Object> meal : recommendedMeal) {
                             String itemName = (String) meal.get("itemName");
+                            // Remove any markdown bolding if present
+                            if (itemName != null) {
+                                itemName = itemName.replace("**", "").trim();
+                            }
+                            
                             // Try to find matching menu item in database
+                            // First try exact match
                             List<MenuItem> items = menuItemRepository.findByNameContainingIgnoreCase(itemName);
+                            
+                            // If no match found, try fuzzy matching or splitting
+                            if (items.isEmpty() && itemName.contains(" ")) {
+                                String[] parts = itemName.split(" ");
+                                for (String part : parts) {
+                                    if (part.length() > 3) {
+                                        items = menuItemRepository.findByNameContainingIgnoreCase(part);
+                                        if (!items.isEmpty()) break;
+                                    }
+                                }
+                            }
+                            
                             if (!items.isEmpty()) {
                                 fullItems.add(menuItemService.convertToResponse(items.get(0)));
                             }

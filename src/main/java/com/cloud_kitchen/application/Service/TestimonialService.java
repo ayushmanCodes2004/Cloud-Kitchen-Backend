@@ -102,6 +102,14 @@ public class TestimonialService {
         testimonialRepository.delete(testimonial);
     }
 
+    @Transactional(readOnly = true)
+    public List<TestimonialResponse> getApprovedTestimonials() {
+        return testimonialRepository.findByApprovedTrueOrderByCreatedAtDesc().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public TestimonialResponse getMyTestimonial(Long userId, String userType) {
         Testimonial testimonial;
         
@@ -114,12 +122,6 @@ public class TestimonialService {
         }
 
         return testimonial != null ? mapToResponse(testimonial) : null;
-    }
-
-    public List<TestimonialResponse> getApprovedTestimonials() {
-        return testimonialRepository.findByApprovedTrue().stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
     }
 
     public List<TestimonialResponse> getPendingTestimonials() {

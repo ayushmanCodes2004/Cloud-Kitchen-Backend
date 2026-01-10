@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class StudentController {
 
     @GetMapping("/dashboard")
-    public ResponseEntity<ApiResponse<UserResponse>> getDashboard() {
+    public ResponseEntity<ApiResponse<String>> getDashboard() {
         return ResponseEntity.ok(new ApiResponse<>(true, "Student dashboard",
                 "Welcome to Student Dashboard"));
     }

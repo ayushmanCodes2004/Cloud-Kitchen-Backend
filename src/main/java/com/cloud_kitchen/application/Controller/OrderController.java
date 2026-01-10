@@ -113,7 +113,7 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping("/orders")
+@RequestMapping({"api/orders", "/orders"})
 @RequiredArgsConstructor
 public class OrderController {
 

@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/chef")
+@RequestMapping({"api/chef", "/chef"})
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('CHEF')")
 public class ChefController {

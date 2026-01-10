@@ -102,7 +102,9 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/auth/register/**",
                                 "/api/testimonials/approved",
+                                "/testimonials/approved",
                                 "/api/ai/**",
+                                "/ai/**",
                                 "/error"
                         ).permitAll()
 

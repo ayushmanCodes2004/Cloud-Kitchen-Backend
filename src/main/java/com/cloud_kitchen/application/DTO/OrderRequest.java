@@ -20,4 +20,13 @@ public class OrderRequest {
     private String deliveryAddress;
 
     private String specialInstructions;
+
+    public List<OrderItemRequest> getItems() { return items; }
+    public void setItems(List<OrderItemRequest> items) { this.items = items; }
+
+    public String getDeliveryAddress() { return deliveryAddress; }
+    public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
+
+    public String getSpecialInstructions() { return specialInstructions; }
+    public void setSpecialInstructions(String specialInstructions) { this.specialInstructions = specialInstructions; }
 }

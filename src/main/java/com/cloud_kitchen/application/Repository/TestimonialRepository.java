@@ -10,6 +10,8 @@ import java.util.Optional;
 @Repository
 public interface TestimonialRepository extends JpaRepository<Testimonial, Long> {
     List<Testimonial> findByApprovedTrue();
+
+    List<Testimonial> findByApprovedTrueOrderByCreatedAtDesc();
     
     List<Testimonial> findByApprovedFalse();
     

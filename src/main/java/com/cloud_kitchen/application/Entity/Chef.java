@@ -28,4 +28,19 @@ public class Chef extends User {
     private Double rating = 0.0;
 
     private Boolean verified = false;
+
+    public String getSpecialization() { return specialization; }
+    public void setSpecialization(String specialization) { this.specialization = specialization; }
+    
+    public Integer getExperienceYears() { return experienceYears; }
+    public void setExperienceYears(Integer experienceYears) { this.experienceYears = experienceYears; }
+    
+    public String getBio() { return bio; }
+    public void setBio(String bio) { this.bio = bio; }
+    
+    public Double getRating() { return rating; }
+    public void setRating(Double rating) { this.rating = rating; }
+    
+    public Boolean getVerified() { return verified; }
+    public void setVerified(Boolean verified) { this.verified = verified; }
 }

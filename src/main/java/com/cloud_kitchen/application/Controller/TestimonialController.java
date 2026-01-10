@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/testimonials")
+@RequestMapping({"/testimonials", "/api/testimonials"})
 @RequiredArgsConstructor
 public class TestimonialController {
 
@@ -95,6 +95,17 @@ public class TestimonialController {
         }
     }
 
+    @GetMapping("/approved")
+    public ResponseEntity<ApiResponse<List<TestimonialResponse>>> getApprovedTestimonials() {
+        try {
+            List<TestimonialResponse> testimonials = testimonialService.getApprovedTestimonials();
+            return ResponseEntity.ok(new ApiResponse<>(true, "Approved testimonials fetched successfully", testimonials));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<>(false, "An error occurred while fetching testimonials", null));
+        }
+    }
+
     @GetMapping("/my")
     @PreAuthorize("hasAnyRole('STUDENT', 'CHEF')")
     public ResponseEntity<ApiResponse<TestimonialResponse>> getMyTestimonial() {
@@ -116,16 +127,6 @@ public class TestimonialController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ApiResponse<>(false, "An error occurred while fetching testimonial", null));
-        }
-    }
-
-    @GetMapping("/approved")
-    public ResponseEntity<List<TestimonialResponse>> getApprovedTestimonials() {
-        try {
-            List<TestimonialResponse> testimonials = testimonialService.getApprovedTestimonials();
-            return ResponseEntity.ok(testimonials);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 

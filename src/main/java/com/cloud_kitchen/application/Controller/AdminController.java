@@ -86,7 +86,7 @@ import java.util.List;
 //}
 
 @RestController
-@RequestMapping("/admin")
+@RequestMapping({"api/admin", "/admin"})
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminController {

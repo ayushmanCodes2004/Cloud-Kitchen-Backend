@@ -30,4 +30,19 @@ public class Student extends User {
 
     @Column(columnDefinition = "TEXT")
     private String address;
+
+    public String getStudentId() { return studentId; }
+    public void setStudentId(String studentId) { this.studentId = studentId; }
+
+    public String getCollege() { return college; }
+    public void setCollege(String college) { this.college = college; }
+
+    public String getHostelName() { return hostelName; }
+    public void setHostelName(String hostelName) { this.hostelName = hostelName; }
+
+    public String getRoomNumber() { return roomNumber; }
+    public void setRoomNumber(String roomNumber) { this.roomNumber = roomNumber; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
 }
