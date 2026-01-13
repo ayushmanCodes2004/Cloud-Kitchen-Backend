@@ -11,6 +11,7 @@ import com.cloud_kitchen.application.Repository.OrderRepository;
 import com.cloud_kitchen.application.Repository.StudentRepository;
 import com.cloud_kitchen.application.Service.AuthService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -159,6 +161,7 @@ import java.util.stream.Collectors;
 //        return "ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 //    }
 //}
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -168,6 +171,7 @@ public class OrderService {
     private final MenuItemRepository menuItemRepository;
     private final StudentRepository studentRepository;
     private final AuthService authService;
+    private final ChatService chatService;
 
 //    @Transactional
 //    public OrderResponse createOrder(OrderRequest request) {
@@ -349,12 +353,46 @@ public class OrderService {
 
     @Transactional
     public OrderResponse updateOrderStatus(Long orderId, OrderStatus newStatus) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+        // Load the complete order with items to avoid lazy loading issues when creating chat
+        Optional<Order> orderOptional = orderRepository.findByIdWithItems(orderId);
+        if (!orderOptional.isPresent()) {
+            System.out.println("DEBUG: Order not found with ID: " + orderId);
+            throw new RuntimeException("Order not found");
+        }
+        Order order = orderOptional.get();
+        
+        OrderStatus oldStatus = order.getStatus();
 
         order.setStatus(newStatus);
         Order updatedOrder = orderRepository.save(order);
+        
+        // Handle chat session activation/deactivation based on order status
+        handleChatActivation(updatedOrder, oldStatus, newStatus);
+        
         return convertToOrderResponse(updatedOrder);
+    }
+    
+    private void handleChatActivation(Order order, OrderStatus oldStatus, OrderStatus newStatus) {
+        log.info("handleChatActivation - Order ID: {}, Old status: {}, New status: {}", order.getId(), oldStatus, newStatus);
+        
+        // Enable chat ONLY when order reaches CONFIRMED status
+        boolean shouldEnableChat = (newStatus == OrderStatus.CONFIRMED && oldStatus != OrderStatus.CONFIRMED);
+        log.info("Should enable chat: {}, New status is CONFIRMED: {}, Old status was not CONFIRMED: {}", 
+                shouldEnableChat, (newStatus == OrderStatus.CONFIRMED), (oldStatus != OrderStatus.CONFIRMED));
+        
+        if (shouldEnableChat) {
+            log.info("Enabling chat for order {} - order reached CONFIRMED status", order.getId());
+            chatService.enableChatForOrder(order);
+        }
+        
+        // Disable chat when order is delivered or cancelled
+        boolean shouldDisableChat = ((newStatus == OrderStatus.DELIVERED || newStatus == OrderStatus.CANCELLED) && oldStatus != newStatus);
+        log.info("Should disable chat: {}, New status: {}", shouldDisableChat, newStatus);
+        
+        if (shouldDisableChat) {
+            log.info("Disabling chat for order {} - order reached {} status", order.getId(), newStatus);
+            chatService.disableChatForOrder(order.getId());
+        }
     }
 
     @Transactional

@@ -20,8 +20,15 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByStudentAndStatus(Student student, OrderStatus status);
     List<Order> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
     List<Order> findByStudentOrderByCreatedAtDesc(Student student);
-
-
+    
+    @Query("SELECT DISTINCT o FROM Order o " +
+            "JOIN FETCH o.student s " +              // Fetch student
+            "LEFT JOIN FETCH o.orderItems oi " +     // Fetch order items
+            "LEFT JOIN FETCH oi.menuItem mi " +      // Fetch menu items
+            "LEFT JOIN FETCH mi.chef c " +           // Fetch chef
+            "WHERE o.id = :id")
+    Optional<Order> findByIdWithItems(@Param("id") Long id);
+    
     @Query("SELECT DISTINCT o FROM Order o " +
             "JOIN FETCH o.student s " +              // Fetch student
             "LEFT JOIN FETCH o.orderItems oi " +     // Fetch order items
