@@ -407,17 +407,11 @@ public class OrderService {
         }
 
         if (order.getStatus() != OrderStatus.PENDING) {
-            throw new RuntimeException("Cannot cancel order in " + order.getStatus() + " status");
+            throw new RuntimeException("Cannot cancel order in " + order.getStatus() + " status. Orders can only be cancelled while PENDING.");
         }
 
-        // Check if order was placed within last 2 minutes
-        LocalDateTime orderCreatedAt = order.getCreatedAt();
-        LocalDateTime twoMinutesAgo = LocalDateTime.now().minusMinutes(2);
-        
-        if (orderCreatedAt.isBefore(twoMinutesAgo)) {
-            throw new RuntimeException("Order can only be cancelled within 2 minutes of placing it");
-        }
-
+        // Students can cancel anytime while order is PENDING
+        // Once chef confirms, cancellation is not allowed
         order.setStatus(OrderStatus.CANCELLED);
         orderRepository.save(order);
     }
