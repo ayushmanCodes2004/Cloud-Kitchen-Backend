@@ -105,6 +105,7 @@ public class SecurityConfig {
                                 "/testimonials/approved",
                                 "/api/ai/**",
                                 "/ai/**",
+                                "/ws/**",  // WebSocket endpoints (authentication handled by WebSocketAuthInterceptor)
                                 "/error"
                         ).permitAll()
 

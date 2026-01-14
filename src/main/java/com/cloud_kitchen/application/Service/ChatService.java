@@ -162,16 +162,21 @@ public class ChatService {
     }
     
     /**
-     * Sends a message in a chat session
+     * Sends a message in a chat session (for WebSocket - with explicit userId)
      */
     @Transactional
-    public ChatMessageDto sendMessage(Long orderId, String message) {
-        // Verify that the current user is authorized to send a message
-        User currentUser = authService.getCurrentUser();
+    public ChatMessageDto sendMessage(Long orderId, Long userId, String message) {
+        log.info("sendMessage called - orderId: {}, userId: {}, message: {}", orderId, userId, message);
         
-        // Get the order
-        Order order = orderRepository.findById(orderId)
+        // Get the user
+        User sender = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        // Get the order with items eagerly loaded to avoid lazy loading issues
+        Order order = orderRepository.findByIdWithItems(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
+        
+        log.info("Order loaded with {} items", order.getOrderItems().size());
         
         // Check if chat is enabled for this order
         if (!isChatEnabledForOrder(orderId)) {
@@ -179,14 +184,18 @@ public class ChatService {
         }
         
         // Verify that the user is either the student who placed the order or the assigned chef
-        boolean isAuthorized = order.getStudent().getId().equals(currentUser.getId());
+        boolean isAuthorized = order.getStudent().getId().equals(userId);
+        log.info("Is student: {}", isAuthorized);
+        
         if (!isAuthorized) {
             // Check if the user is the chef assigned to this order
             isAuthorized = order.getOrderItems().stream()
-                    .anyMatch(item -> item.getMenuItem().getChef().getId().equals(currentUser.getId()));
+                    .anyMatch(item -> item.getMenuItem().getChef().getId().equals(userId));
+            log.info("Is chef: {}", isAuthorized);
         }
         
         if (!isAuthorized) {
+            log.error("User {} not authorized for order {}", userId, orderId);
             throw new RuntimeException("Unauthorized to send message for this order");
         }
         
@@ -194,19 +203,37 @@ public class ChatService {
         ChatSession session = chatSessionRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new RuntimeException("Chat session not found for order"));
         
+        log.info("Creating chat message for session: {}", session.getId());
+        
         // Create and save the message
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setChatSessionId(session.getId());
-        chatMessage.setSenderUserId(currentUser.getId());
+        chatMessage.setSenderUserId(userId);
         chatMessage.setMessage(message);
         chatMessage.setMessageType(ChatMessage.MessageType.TEXT);
         
         ChatMessage savedMessage = chatMessageRepository.save(chatMessage);
+        log.info("Message saved with ID: {}", savedMessage.getId());
         
         // Get sender name
-        String senderName = currentUser.getName();
+        String senderName = sender.getName();
         
-        return ChatMessageDto.fromEntity(savedMessage, senderName);
+        ChatMessageDto dto = ChatMessageDto.fromEntity(savedMessage, senderName);
+        log.info("Returning ChatMessageDto: {}", dto);
+        
+        return dto;
+    }
+    
+    /**
+     * Sends a message in a chat session (for REST API - uses current authenticated user)
+     */
+    @Transactional
+    public ChatMessageDto sendMessage(Long orderId, String message) {
+        // Verify that the current user is authorized to send a message
+        User currentUser = authService.getCurrentUser();
+        
+        // Delegate to the method that accepts userId
+        return sendMessage(orderId, currentUser.getId(), message);
     }
     
     /**
@@ -269,7 +296,8 @@ public class ChatService {
      * Checks if a user is authorized to participate in a chat for an order
      */
     public boolean isUserAuthorizedForChat(Long orderId, Long userId) {
-        Order order = orderRepository.findById(orderId)
+        // Get the order with items eagerly loaded
+        Order order = orderRepository.findByIdWithItems(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         
         // Check if user is the student who placed the order
