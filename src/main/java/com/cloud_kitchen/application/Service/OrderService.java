@@ -479,6 +479,13 @@ public class OrderService {
         response.setEstimatedDeliveryTime(order.getEstimatedDeliveryTime());
         response.setCreatedAt(order.getCreatedAt());
         response.setUpdatedAt(order.getUpdatedAt());
+        
+        // Add payment and invoice fields
+        response.setInvoiceNumber(order.getInvoiceNumber());
+        response.setPaymentMethod(order.getPaymentMethod() != null ? order.getPaymentMethod().name() : null);
+        response.setPaymentStatus(order.getPaymentStatus() != null ? order.getPaymentStatus().name() : null);
+        response.setTaxAmount(order.getTaxAmount());
+        response.setPlatformFee(order.getPlatformFee());
 
         // Convert order items
         List<OrderItemResponse> orderItemResponses = order.getOrderItems().stream()
