@@ -21,6 +21,8 @@ public class OrderRequest {
 
     private String specialInstructions;
 
+    private String paymentMethod = "CASH_ON_DELIVERY"; // CASH_ON_DELIVERY or ONLINE_PAYMENT
+
     public List<OrderItemRequest> getItems() { return items; }
     public void setItems(List<OrderItemRequest> items) { this.items = items; }
 
@@ -29,4 +31,7 @@ public class OrderRequest {
 
     public String getSpecialInstructions() { return specialInstructions; }
     public void setSpecialInstructions(String specialInstructions) { this.specialInstructions = specialInstructions; }
+
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
 }

@@ -301,6 +301,28 @@ public class OrderService {
             order.setTotalAmount(totalAmount);
             order.setEstimatedDeliveryTime(LocalDateTime.now().plusMinutes(30));
 
+            // Set payment method from request
+            try {
+                order.setPaymentMethod(PaymentMethod.valueOf(request.getPaymentMethod()));
+            } catch (Exception e) {
+                order.setPaymentMethod(PaymentMethod.CASH_ON_DELIVERY);
+            }
+            
+            // Set payment status based on payment method
+            if (order.getPaymentMethod() == PaymentMethod.CASH_ON_DELIVERY) {
+                order.setPaymentStatus(PaymentStatus.PENDING);
+            } else {
+                order.setPaymentStatus(PaymentStatus.PENDING); // Will be updated after payment gateway
+            }
+            
+            // Generate invoice number
+            order.setInvoiceNumber(generateInvoiceNumber());
+            
+            // Calculate tax and platform fee (student-friendly rates)
+            order.setTaxAmount(totalAmount * 0.02); // 2% tax (student discount)
+            order.setPlatformFee(8.0); // ₹8 platform fee
+            order.setTotalAmount(totalAmount + order.getTaxAmount() + order.getPlatformFee());
+
             Order savedOrder = orderRepository.save(order);
             createdOrders.add(convertToOrderResponse(savedOrder));
         }
@@ -493,5 +515,11 @@ public class OrderService {
         response.setChefName(orderItem.getMenuItem().getChef().getName());
         return response;
     }
-}
 
+    private String generateInvoiceNumber() {
+        String datePart = java.time.LocalDate.now().format(
+                java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+        long count = orderRepository.count() + 1;
+        return String.format("INV-%s-%05d", datePart, count);
+    }
+}

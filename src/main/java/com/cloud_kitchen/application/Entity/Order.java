@@ -56,6 +56,20 @@ public class Order {
 
     private LocalDateTime estimatedDeliveryTime;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentMethod paymentMethod = PaymentMethod.CASH_ON_DELIVERY;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentStatus paymentStatus = PaymentStatus.PENDING;
+
+    private String invoiceNumber;
+
+    private Double taxAmount = 0.0;
+
+    private Double platformFee = 0.0;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -90,6 +104,21 @@ public class Order {
 
     public LocalDateTime getEstimatedDeliveryTime() { return estimatedDeliveryTime; }
     public void setEstimatedDeliveryTime(LocalDateTime estimatedDeliveryTime) { this.estimatedDeliveryTime = estimatedDeliveryTime; }
+
+    public PaymentMethod getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(PaymentMethod paymentMethod) { this.paymentMethod = paymentMethod; }
+
+    public PaymentStatus getPaymentStatus() { return paymentStatus; }
+    public void setPaymentStatus(PaymentStatus paymentStatus) { this.paymentStatus = paymentStatus; }
+
+    public String getInvoiceNumber() { return invoiceNumber; }
+    public void setInvoiceNumber(String invoiceNumber) { this.invoiceNumber = invoiceNumber; }
+
+    public Double getTaxAmount() { return taxAmount; }
+    public void setTaxAmount(Double taxAmount) { this.taxAmount = taxAmount; }
+
+    public Double getPlatformFee() { return platformFee; }
+    public void setPlatformFee(Double platformFee) { this.platformFee = platformFee; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
