@@ -103,6 +103,7 @@ public class SecurityConfig {
                                 "/api/auth/register/**",
                                 "/api/testimonials/approved",
                                 "/testimonials/approved",
+                                "/api/subscriptions/plans/**",  // Allow public access to view subscription plans
                                 "/api/ai/**",
                                 "/ai/**",
                                 "/ws/**",  // WebSocket endpoints (authentication handled by WebSocketAuthInterceptor)

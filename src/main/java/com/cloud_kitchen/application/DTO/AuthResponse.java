@@ -15,6 +15,7 @@ public class AuthResponse {
     private String name;
     private String role;
     private Boolean verified;
+    private String subscriptionStatus;
 
     public AuthResponse(String token, Long id, String email, String name, String role) {
         this.token = token;
@@ -31,5 +32,15 @@ public class AuthResponse {
         this.name = name;
         this.role = role;
         this.verified = verified;
+    }
+
+    public AuthResponse(String token, Long id, String email, String name, String role, Boolean verified, String subscriptionStatus) {
+        this.token = token;
+        this.id = id;
+        this.email = email;
+        this.name = name;
+        this.role = role;
+        this.verified = verified;
+        this.subscriptionStatus = subscriptionStatus;
     }
 }

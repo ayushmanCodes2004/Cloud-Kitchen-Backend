@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -166,12 +167,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderService {
 
+    private static final ZoneId IST_ZONE = ZoneId.of("Asia/Kolkata");
+
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final MenuItemRepository menuItemRepository;
     private final StudentRepository studentRepository;
     private final AuthService authService;
     private final ChatService chatService;
+    private final SubscriptionService subscriptionService;
 
 //    @Transactional
 //    public OrderResponse createOrder(OrderRequest request) {
@@ -299,7 +303,7 @@ public class OrderService {
 
             order.setOrderItems(orderItems);
             order.setTotalAmount(totalAmount);
-            order.setEstimatedDeliveryTime(LocalDateTime.now().plusMinutes(30));
+            order.setEstimatedDeliveryTime(LocalDateTime.now(IST_ZONE).plusMinutes(30));
 
             // Set payment method from request
             try {
@@ -318,9 +322,25 @@ public class OrderService {
             // Generate invoice number
             order.setInvoiceNumber(generateInvoiceNumber());
             
+            // Check if student has active subscription
+            Subscription activeSubscription = subscriptionService.getActiveSubscriptionForStudent(student.getId());
+            double discountAmount = 0.0;
+            double platformFee = 8.0;
+            
+            if (activeSubscription != null) {
+                // Apply subscription discount (5% for Gold plan)
+                discountAmount = totalAmount * (activeSubscription.getPlan().getDiscountPercentage() / 100.0);
+                totalAmount = totalAmount - discountAmount;
+                
+                // Waive platform fee for Gold subscribers
+                if (activeSubscription.getPlan().getPlatformFeeWaived()) {
+                    platformFee = 0.0;
+                }
+            }
+            
             // Calculate tax and platform fee (student-friendly rates)
             order.setTaxAmount(totalAmount * 0.02); // 2% tax (student discount)
-            order.setPlatformFee(8.0); // ₹8 platform fee
+            order.setPlatformFee(platformFee); // ₹8 platform fee (waived for Gold subscribers)
             order.setTotalAmount(totalAmount + order.getTaxAmount() + order.getPlatformFee());
 
             Order savedOrder = orderRepository.save(order);

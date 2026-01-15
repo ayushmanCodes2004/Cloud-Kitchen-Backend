@@ -31,6 +31,12 @@ public class Student extends User {
     @Column(columnDefinition = "TEXT")
     private String address;
 
+    @Column(length = 20)
+    private String subscriptionStatus = "NONE";
+
+    @Column(name = "subscription_id")
+    private Long subscriptionId;
+
     public String getStudentId() { return studentId; }
     public void setStudentId(String studentId) { this.studentId = studentId; }
 
@@ -45,4 +51,10 @@ public class Student extends User {
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
+
+    public String getSubscriptionStatus() { return subscriptionStatus; }
+    public void setSubscriptionStatus(String subscriptionStatus) { this.subscriptionStatus = subscriptionStatus; }
+
+    public Long getSubscriptionId() { return subscriptionId; }
+    public void setSubscriptionId(Long subscriptionId) { this.subscriptionId = subscriptionId; }
 }

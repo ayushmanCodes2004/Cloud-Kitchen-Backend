@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -19,6 +21,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ChatService {
+    
+    private static final ZoneId IST_ZONE = ZoneId.of("Asia/Kolkata");
     
     private final ChatSessionRepository chatSessionRepository;
     private final ChatMessageRepository chatMessageRepository;
@@ -95,7 +99,7 @@ public class ChatService {
         if (sessionOpt.isPresent()) {
             ChatSession session = sessionOpt.get();
             session.setStatus(ChatSession.ChatStatus.INACTIVE);
-            session.setEndedAt(java.time.LocalDateTime.now());
+            session.setEndedAt(LocalDateTime.now(IST_ZONE));
             chatSessionRepository.save(session);
         }
     }
@@ -205,12 +209,13 @@ public class ChatService {
         
         log.info("Creating chat message for session: {}", session.getId());
         
-        // Create and save the message
+        // Create and save the message with explicit IST timestamp
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setChatSessionId(session.getId());
         chatMessage.setSenderUserId(userId);
         chatMessage.setMessage(message);
         chatMessage.setMessageType(ChatMessage.MessageType.TEXT);
+        chatMessage.setSentAt(LocalDateTime.now(IST_ZONE)); // Explicitly set IST time
         
         ChatMessage savedMessage = chatMessageRepository.save(chatMessage);
         log.info("Message saved with ID: {}", savedMessage.getId());

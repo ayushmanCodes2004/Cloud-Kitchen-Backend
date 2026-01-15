@@ -16,6 +16,8 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,6 +28,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderChatWebSocketHandler extends TextWebSocketHandler {
 
+    private static final ZoneId IST_ZONE = ZoneId.of("Asia/Kolkata");
+    
     private final ChatService chatService;
     private final AuthService authService;
     private final UserRepository userRepository;
@@ -127,7 +131,7 @@ public class OrderChatWebSocketHandler extends TextWebSocketHandler {
                 errorMsg.setMessage("You are not authorized to chat for this order.");
                 errorMsg.setMessageType("SYSTEM");
                 errorMsg.setSenderName("System");
-                errorMsg.setSentAt(java.time.LocalDateTime.now());
+                errorMsg.setSentAt(LocalDateTime.now(IST_ZONE));
                 
                 session.sendMessage(new TextMessage(objectMapper.writeValueAsString(errorMsg)));
                 return;
@@ -142,7 +146,7 @@ public class OrderChatWebSocketHandler extends TextWebSocketHandler {
                 errorMsg.setMessage("Chat is not available for this order at this time.");
                 errorMsg.setMessageType("SYSTEM");
                 errorMsg.setSenderName("System");
-                errorMsg.setSentAt(java.time.LocalDateTime.now());
+                errorMsg.setSentAt(LocalDateTime.now(IST_ZONE));
                 
                 session.sendMessage(new TextMessage(objectMapper.writeValueAsString(errorMsg)));
                 return;
@@ -169,7 +173,7 @@ public class OrderChatWebSocketHandler extends TextWebSocketHandler {
             errorMsg.setMessage("Error sending message: " + e.getMessage());
             errorMsg.setMessageType("SYSTEM");
             errorMsg.setSenderName("System");
-            errorMsg.setSentAt(java.time.LocalDateTime.now());
+            errorMsg.setSentAt(LocalDateTime.now(IST_ZONE));
             
             session.sendMessage(new TextMessage(objectMapper.writeValueAsString(errorMsg)));
         }

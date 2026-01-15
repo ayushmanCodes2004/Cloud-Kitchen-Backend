@@ -40,7 +40,6 @@ public class ChatMessage {
     private MessageType messageType = MessageType.TEXT;
 
     @Column(name = "sent_at", nullable = false)
-    @CreationTimestamp
     private LocalDateTime sentAt;
 
     @Column(name = "read_status")

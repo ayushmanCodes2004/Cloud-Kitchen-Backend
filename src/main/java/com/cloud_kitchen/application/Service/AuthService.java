@@ -164,16 +164,20 @@ public class AuthService {
 
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         
-        // Get verified status for chefs
+        // Get verified status for chefs and subscription status for students
         User user = userRepository.findById(userPrincipal.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         Boolean verified = null;
+        String subscriptionStatus = null;
+        
         if (user instanceof Chef) {
             verified = ((Chef) user).getVerified();
+        } else if (user instanceof Student) {
+            subscriptionStatus = ((Student) user).getSubscriptionStatus();
         }
 
         return new AuthResponse(jwt, userPrincipal.getId(), userPrincipal.getEmail(),
-                userPrincipal.getName(), userPrincipal.getRole(), verified);
+                userPrincipal.getName(), userPrincipal.getRole(), verified, subscriptionStatus);
     }
 
     public User getCurrentUser() {
